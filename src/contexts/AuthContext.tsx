@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 
 type UserRole = "admin" | "instructor" | "student";
 
@@ -27,27 +28,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Check if the user is already logged in on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("lms_user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        
+        // If user is on login/register page but already logged in, redirect to their dashboard
+        if (location.pathname === '/login' || location.pathname === '/register') {
+          redirectToDashboard(parsedUser.role);
+        }
       } catch (e) {
         localStorage.removeItem("lms_user");
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [location.pathname]);
+
+  const redirectToDashboard = (role: UserRole) => {
+    if (role === "student") {
+      navigate("/dashboard", { replace: true });
+    } else if (role === "instructor") {
+      navigate("/instructor/dashboard", { replace: true });
+    } else if (role === "admin") {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  };
 
   const login = (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
     
-    // Mock login - in a real app, this would be a call to Supabase
     try {
-      // For now, let's simulate login with hardcoded values
+      // Mock login - in a real app, this would be a call to Supabase
       let mockUser: User;
       
       if (email === "student@example.com" && password === "password") {
@@ -78,16 +95,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(mockUser);
       localStorage.setItem("lms_user", JSON.stringify(mockUser));
       
-      // Redirect based on role
-      if (mockUser.role === "student") {
-        navigate("/dashboard");
-      } else if (mockUser.role === "instructor") {
-        navigate("/instructor/dashboard");
-      } else if (mockUser.role === "admin") {
-        navigate("/admin/dashboard");
+      // Show success toast
+      toast.success(`Welcome back, ${mockUser.name}!`);
+      
+      // Check if we need to redirect to a specific page
+      const from = (location.state as any)?.from || null;
+      
+      if (from) {
+        navigate(from, { replace: true });
+      } else {
+        redirectToDashboard(mockUser.role);
       }
     } catch (error) {
-      setError((error as Error).message);
+      const errorMessage = (error as Error).message;
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -109,16 +131,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(mockUser);
       localStorage.setItem("lms_user", JSON.stringify(mockUser));
       
-      // Redirect based on role
-      if (mockUser.role === "student") {
-        navigate("/dashboard");
-      } else if (mockUser.role === "instructor") {
-        navigate("/instructor/dashboard");
-      } else if (mockUser.role === "admin") {
-        navigate("/admin/dashboard");
-      }
+      toast.success("Account created successfully!");
+      redirectToDashboard(mockUser.role);
     } catch (error) {
-      setError((error as Error).message);
+      const errorMessage = (error as Error).message;
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem("lms_user");
     setUser(null);
-    navigate("/login");
+    toast.info("You have been logged out");
+    navigate("/login", { replace: true });
   };
 
   return (

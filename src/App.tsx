@@ -17,7 +17,14 @@ import CourseDetail from "./pages/courses/CourseDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -25,7 +32,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Toaster />
-          <Sonner />
+          <Sonner position="top-right" />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
@@ -59,7 +66,11 @@ const App = () => (
             />
             
             {/* Course Routes */}
-            <Route path="/courses/:courseId" element={<CourseDetail />} />
+            <Route path="/courses/:courseId" element={
+              <ProtectedRoute>
+                <CourseDetail />
+              </ProtectedRoute>
+            } />
             
             {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />

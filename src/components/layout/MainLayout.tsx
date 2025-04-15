@@ -2,6 +2,8 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -18,6 +20,26 @@ export function MainLayout({
 }: MainLayoutProps) {
   const { user } = useAuth();
   const role = userRole || user?.role;
+  const navigate = useNavigate();
+
+  // Ensure correct routing on user role changes
+  useEffect(() => {
+    if (user && role) {
+      // Make sure the user is on the correct dashboard based on their role
+      const currentPath = window.location.pathname;
+      const isOnDashboard = currentPath.includes('dashboard');
+      
+      if (isOnDashboard) {
+        const correctPath = role === 'student' ? '/dashboard' :
+                           role === 'instructor' ? '/instructor/dashboard' :
+                           role === 'admin' ? '/admin/dashboard' : '/dashboard';
+        
+        if (!currentPath.startsWith(correctPath)) {
+          navigate(correctPath);
+        }
+      }
+    }
+  }, [user, role, navigate]);
 
   return (
     <div className="flex h-screen w-full bg-background">

@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface AuthFormProps {
   isRegister?: boolean;
@@ -33,23 +33,33 @@ export function AuthForm({ isRegister = false }: AuthFormProps) {
   const [role, setRole] = useState("student");
   
   const { login, register, isLoading, error } = useAuth();
-  const { toast } = useToast();
+
+  // Display authentication tips
+  useEffect(() => {
+    if (!isRegister) {
+      toast.info(
+        <div>
+          <p><strong>Demo Credentials:</strong></p>
+          <p>Student: student@example.com / password</p>
+          <p>Instructor: instructor@example.com / password</p>
+          <p>Admin: admin@example.com / password</p>
+        </div>,
+        { duration: 8000 }
+      );
+    }
+  }, [isRegister]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (isRegister) {
+      if (!name.trim()) {
+        toast.error("Please enter your name");
+        return;
+      }
       register(email, password, name, role);
     } else {
       login(email, password);
-    }
-
-    if (error) {
-      toast({
-        title: "Authentication Error",
-        description: error,
-        variant: "destructive",
-      });
     }
   };
 
