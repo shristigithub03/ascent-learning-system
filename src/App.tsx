@@ -15,6 +15,7 @@ import InstructorDashboard from "./pages/dashboard/InstructorDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import CourseDetail from "./pages/courses/CourseDetail";
 import MyCourses from "./pages/courses/MyCourses";
+import Settings from "./pages/settings/Settings";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -92,6 +93,16 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <MyCourses />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Settings Route */}
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />

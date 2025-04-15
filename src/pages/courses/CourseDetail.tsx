@@ -5,9 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Clock, FileText, Lock, PlayCircle, User } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { CheckCircle, Clock, FileText, Lock, PlayCircle, User, Youtube } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 
 // Mock course data - would come from Supabase
 const courseData = {
@@ -24,6 +26,7 @@ const courseData = {
   progress: 65,
   enrolled: true,
   imageUrl: "",
+  youtubeLink: "https://www.youtube.com/watch?v=PlxWf493en4",
   lessons: [
     {
       id: "l1",
@@ -31,6 +34,7 @@ const courseData = {
       duration: "15:30",
       type: "video",
       completed: true,
+      youtubeLink: "https://www.youtube.com/watch?v=qz0aGYrrlhU",
     },
     {
       id: "l2",
@@ -38,6 +42,7 @@ const courseData = {
       duration: "23:45",
       type: "video",
       completed: true,
+      youtubeLink: "https://www.youtube.com/watch?v=UB1O30fR-EE",
     },
     {
       id: "l3",
@@ -45,6 +50,7 @@ const courseData = {
       duration: "18:20",
       type: "video",
       completed: true,
+      youtubeLink: "https://www.youtube.com/watch?v=1PnVor36_40",
     },
     {
       id: "l4",
@@ -52,6 +58,7 @@ const courseData = {
       duration: "27:15",
       type: "video",
       completed: false,
+      youtubeLink: "https://www.youtube.com/watch?v=yfoY53QXEnI",
     },
     {
       id: "l5",
@@ -67,16 +74,162 @@ const courseData = {
       type: "video",
       completed: false,
       locked: true,
+      youtubeLink: "https://www.youtube.com/watch?v=W6NZfCO5SIk",
     }
   ]
 };
 
+// Adding more courses to our mock data
+const coursesData = {
+  "1": courseData,
+  "2": {
+    id: "2",
+    title: "Advanced React Techniques",
+    description: "Master React hooks, context API, and performance optimization techniques to build powerful, efficient React applications.",
+    instructorName: "John Doe",
+    instructorTitle: "React Developer",
+    instructorBio: "John is a senior frontend developer with 8+ years of experience specializing in React.",
+    enrolledCount: 86,
+    lessonCount: 10,
+    duration: "8 hours",
+    level: "Advanced",
+    progress: 23,
+    enrolled: true,
+    imageUrl: "",
+    youtubeLink: "https://www.youtube.com/watch?v=bMknfKXIFA8",
+    lessons: [
+      {
+        id: "l1",
+        title: "Advanced React Hooks",
+        duration: "25:30",
+        type: "video",
+        completed: true,
+        youtubeLink: "https://www.youtube.com/watch?v=TNhaISOUy6Q",
+      },
+      {
+        id: "l2",
+        title: "Context API Deep Dive",
+        duration: "30:45",
+        type: "video",
+        completed: false,
+        youtubeLink: "https://www.youtube.com/watch?v=35lXWvCuM8o",
+      },
+    ]
+  },
+  "3": {
+    id: "3",
+    title: "UX Design Principles",
+    description: "Learn how to create intuitive and engaging user experiences with fundamental UX design principles.",
+    instructorName: "Alice Johnson",
+    instructorTitle: "UX Designer",
+    instructorBio: "Alice has designed user experiences for Fortune 500 companies and teaches UX principles.",
+    enrolledCount: 120,
+    lessonCount: 8,
+    duration: "5 hours",
+    level: "Beginner",
+    progress: 10,
+    enrolled: true,
+    imageUrl: "",
+    youtubeLink: "https://www.youtube.com/watch?v=c9Wg6Cb_YlU",
+    lessons: [
+      {
+        id: "l1",
+        title: "UX Fundamentals",
+        duration: "18:20",
+        type: "video",
+        completed: true,
+        youtubeLink: "https://www.youtube.com/watch?v=c9Wg6Cb_YlU",
+      },
+      {
+        id: "l2",
+        title: "User Research Methods",
+        duration: "22:15",
+        type: "video",
+        completed: false,
+        youtubeLink: "https://www.youtube.com/watch?v=bAARmsv1tms",
+      },
+    ]
+  }
+};
+
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
-  // In a real app, we would fetch the course data using courseId
-  const course = courseData;
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Get course data based on courseId
+  const course = coursesData[courseId as keyof typeof coursesData];
+  
+  useEffect(() => {
+    // If course not found, redirect to courses page
+    if (!course) {
+      toast({
+        title: "Course not found",
+        description: "The course you're looking for doesn't exist or has been removed.",
+        variant: "destructive",
+      });
+      navigate("/my-courses");
+    }
+  }, [course, navigate, toast]);
+
+  // If course is still loading or not found
+  if (!course) {
+    return (
+      <MainLayout>
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-lg">Loading course...</span>
+        </div>
+      </MainLayout>
+    );
+  }
   
   const completedCount = course.lessons.filter(lesson => lesson.completed).length;
+  
+  // Function to handle continue learning button
+  const handleContinueLearning = () => {
+    // Find the first incomplete lesson with a YouTube link
+    const nextLesson = course.lessons.find(
+      lesson => !lesson.completed && !lesson.locked && lesson.youtubeLink
+    );
+    
+    if (nextLesson && nextLesson.youtubeLink) {
+      window.open(nextLesson.youtubeLink, '_blank');
+    } else {
+      // If no incomplete lessons, open the course's main YouTube link
+      window.open(course.youtubeLink, '_blank');
+    }
+    
+    toast({
+      title: "Opening YouTube",
+      description: "Opening the course video in a new tab",
+    });
+  };
+
+  // Function to open specific lesson
+  const handleOpenLesson = (lesson: any) => {
+    if (lesson.locked) {
+      toast({
+        title: "Lesson Locked",
+        description: "You need to complete previous lessons first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (lesson.youtubeLink) {
+      window.open(lesson.youtubeLink, '_blank');
+      toast({
+        title: "Opening Lesson",
+        description: `Opening "${lesson.title}" in a new tab`,
+      });
+    } else if (lesson.type === "quiz") {
+      toast({
+        title: "Quiz Available",
+        description: "The quiz functionality will be implemented soon.",
+      });
+    }
+  };
   
   return (
     <MainLayout>
@@ -111,11 +264,14 @@ export default function CourseDetail() {
             <Card className="overflow-hidden">
               {/* If we had an image, we would display it here */}
               <div className="bg-gradient-to-r from-primary/20 to-accent/20 h-36 flex items-center justify-center">
-                <PlayCircle className="h-16 w-16 text-primary" />
+                <Youtube className="h-16 w-16 text-primary" />
               </div>
               <CardContent className="p-6">
                 {course.enrolled ? (
-                  <Button className="w-full mb-4">Continue Learning</Button>
+                  <Button className="w-full mb-4 flex items-center gap-2" onClick={handleContinueLearning}>
+                    <Youtube className="h-4 w-4" />
+                    Continue Learning
+                  </Button>
                 ) : (
                   <Button className="w-full mb-4">Enroll Now</Button>
                 )}
@@ -159,7 +315,8 @@ export default function CourseDetail() {
                       key={lesson.id} 
                       className={`p-3 rounded-md border flex items-center justify-between ${
                         lesson.completed ? "bg-primary/5" : ""
-                      } ${lesson.locked ? "opacity-60" : ""}`}
+                      } ${lesson.locked ? "opacity-60" : "cursor-pointer hover:bg-accent/20"}`}
+                      onClick={() => !lesson.locked && handleOpenLesson(lesson)}
                     >
                       <div className="flex items-center gap-2">
                         {lesson.type === "video" ? (
@@ -179,7 +336,11 @@ export default function CourseDetail() {
                           <Lock className="h-4 w-4 text-muted-foreground" />
                         ) : lesson.completed ? (
                           <CheckCircle className="h-4 w-4 text-primary" />
-                        ) : null}
+                        ) : (
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Youtube className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
