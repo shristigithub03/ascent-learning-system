@@ -18,6 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AuthFormProps {
   isRegister?: boolean;
@@ -28,11 +31,26 @@ export function AuthForm({ isRegister = false }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState("student");
+  
+  const { login, register, isLoading, error } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // We'll implement Supabase auth here later
-    console.log({ email, password, name, role });
+    
+    if (isRegister) {
+      register(email, password, name, role);
+    } else {
+      login(email, password);
+    }
+
+    if (error) {
+      toast({
+        title: "Authentication Error",
+        description: error,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -98,8 +116,17 @@ export function AuthForm({ isRegister = false }: AuthFormProps) {
           )}
         </CardContent>
         <CardFooter className="flex flex-col">
-          <Button type="submit" className="w-full">
-            {isRegister ? "Create account" : "Sign in"}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please wait
+              </>
+            ) : isRegister ? (
+              "Create account"
+            ) : (
+              "Sign in"
+            )}
           </Button>
         </CardFooter>
       </form>

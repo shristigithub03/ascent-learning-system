@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 type SidebarItem = {
   icon: React.ElementType;
@@ -71,6 +72,7 @@ interface SidebarProps {
 export function Sidebar({ userRole, className }: SidebarProps) {
   const location = useLocation();
   const path = location.pathname;
+  const { user, logout } = useAuth();
 
   const filteredItems = sidebarItems.filter(
     (item) => !item.role || item.role.includes(userRole || "")
@@ -87,6 +89,14 @@ export function Sidebar({ userRole, className }: SidebarProps) {
         <GraduationCap className="h-10 w-10 text-primary" />
         <span className="text-lg font-bold">Ascent LMS</span>
       </div>
+
+      {user && (
+        <div className="px-2 mb-6">
+          <p className="text-sm font-medium">Welcome,</p>
+          <p className="text-base font-bold truncate">{user.name}</p>
+          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+        </div>
+      )}
 
       <div className="space-y-1 flex-1">
         {filteredItems.map((item) => (
@@ -107,7 +117,7 @@ export function Sidebar({ userRole, className }: SidebarProps) {
         ))}
       </div>
 
-      <Button variant="ghost" className="justify-start gap-2 mt-auto">
+      <Button variant="ghost" className="justify-start gap-2 mt-auto" onClick={logout}>
         <LogOut className="h-4 w-4" />
         Sign Out
       </Button>
