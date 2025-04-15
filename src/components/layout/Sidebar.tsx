@@ -31,19 +31,31 @@ const sidebarItems: SidebarItem[] = [
     icon: LayoutDashboard,
     label: "Dashboard",
     href: "/dashboard",
-    role: ["student", "instructor", "admin"],
+    role: ["student"],
+  },
+  {
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    href: "/instructor/dashboard",
+    role: ["instructor"],
+  },
+  {
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    href: "/admin/dashboard",
+    role: ["admin"],
   },
   {
     icon: BookOpen,
     label: "My Courses",
     href: "/my-courses",
-    role: ["student"],
+    role: ["student", "instructor"],
   },
   {
     icon: Library,
-    label: "Courses",
+    label: "All Courses",
     href: "/courses",
-    role: ["instructor"],
+    role: ["student"],
   },
   {
     icon: GraduationCap,
@@ -75,7 +87,7 @@ export function Sidebar({ userRole, className }: SidebarProps) {
   const { user, logout } = useAuth();
 
   const filteredItems = sidebarItems.filter(
-    (item) => !item.role || item.role.includes(userRole || "")
+    (item) => !item.role || (userRole && item.role.includes(userRole))
   );
 
   return (
@@ -102,10 +114,10 @@ export function Sidebar({ userRole, className }: SidebarProps) {
         {filteredItems.map((item) => (
           <Link to={item.href} key={item.href}>
             <Button
-              variant={path === item.href ? "secondary" : "ghost"}
+              variant={path === item.href || path.startsWith(item.href + '/') ? "secondary" : "ghost"}
               className={cn(
                 "w-full justify-start gap-2",
-                path === item.href
+                (path === item.href || path.startsWith(item.href + '/'))
                   ? "bg-secondary/20 hover:bg-secondary/20"
                   : ""
               )}

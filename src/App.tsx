@@ -14,6 +14,7 @@ import StudentDashboard from "./pages/dashboard/StudentDashboard";
 import InstructorDashboard from "./pages/dashboard/InstructorDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import CourseDetail from "./pages/courses/CourseDetail";
+import MyCourses from "./pages/courses/MyCourses";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -65,12 +66,35 @@ const App = () => (
               } 
             />
             
+            {/* My Courses Route */}
+            <Route 
+              path="/my-courses" 
+              element={
+                <ProtectedRoute allowedRoles={["student", "instructor"]}>
+                  <MyCourses />
+                </ProtectedRoute>
+              } 
+            />
+            
             {/* Course Routes */}
-            <Route path="/courses/:courseId" element={
-              <ProtectedRoute>
-                <CourseDetail />
-              </ProtectedRoute>
-            } />
+            <Route 
+              path="/courses/:courseId" 
+              element={
+                <ProtectedRoute>
+                  <CourseDetail />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Additional Routes */}
+            <Route 
+              path="/courses" 
+              element={
+                <ProtectedRoute>
+                  <MyCourses />
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />
